@@ -82,8 +82,10 @@
         initScroll(container);
 
         function initScroll(container) {
+
+            var timer;
             
-            container.addEventListener('scroll', (function () {
+            container.addEventListener('scroll', throttle(function () {
 
                 if(container == window) {
                     var scrollTop = document.body.scrollTop;
@@ -94,7 +96,7 @@
                     var containerHeight = container.clientHeight;
                     var doc = container;
                 }
-                
+
                 var anchors = doc.querySelectorAll('*[event-anchor]');
 
                 for (var i = 0; i < anchors.length; i++) {
@@ -112,6 +114,21 @@
                         dom.pv = false;
                     }
                 };
+
+
+                var oldScrollTop = container.scrollTop;
+
+                clearInterval(timer)
+
+                timer = setInterval(function () {
+
+                    if (container.scrollTop == oldScrollTop) {
+                        console.log('停止');
+                        clearInterval(timer)
+                    }
+
+                    oldScrollTop = container.scrollTop;
+                }, 100)
             }));
         }
 
