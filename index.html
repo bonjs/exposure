@@ -1,0 +1,135 @@
+<html>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+
+    /*
+    body {
+        height: 10000px;
+        border: 1px red solid;
+    }
+    */
+
+    #container {
+        position: relative;
+        //top:200px;
+        overflow: auto;
+        height: 500px;
+        border: 1px blue solid;
+    }
+
+
+    #d1 {
+        position: relative;
+        width:60%;
+        top: 600px;
+        height: 1200px;
+        border: 1px red solid;
+    }
+    
+    #d2 {
+        width: 80%;
+        height: 50px;
+       
+        background-color: #ddd;
+    }
+
+
+    img {
+        width: 100%;
+    }
+</style>
+
+<head>
+    <title>测试</title>
+</head>
+
+
+<body id=body>
+
+        <div id=container>
+
+            <div id=d1 event-anchor >d1</div>
+            <div id=d2 event-anchor >d2</div>
+            
+            <!--
+                img1<img id=img1 event-anchor src="img.jpg">
+                img2<img id=img2 event-anchor src="http://a3.att.hudong.com/14/75/01300000164186121366756803686.jpg">
+                im3<img id=img3 event-anchor src="http://a4.att.hudong.com/20/62/01000000000000119086280352820.jpg">
+                d1<div id=d1 event-anchor >d1</div>
+            -->
+        </div>
+            
+    <script>
+        // 节流函数
+        var throttle = function () {
+            var time = 0;
+            return function (fn) {
+                return function () {
+                    if (new Date().getTime() - time > 200) {
+                        time = new Date().getTime();
+                        fn.apply(this, arguments)
+                    }
+                }
+            };
+        }();
+
+
+        var container = document.getElementById('container');
+
+        initScroll(container);
+
+        function initScroll(container) {
+            
+            container.addEventListener('scroll', (function () {
+
+                if(container == window) {
+                    var scrollTop = document.body.scrollTop;
+                    var containerHeight = window.innerHeight;
+                    var doc = document;
+                } else {
+                    var scrollTop = container.scrollTop;
+                    var containerHeight = container.clientHeight;
+                    var doc = container;
+                }
+                
+                var anchors = doc.querySelectorAll('*[event-anchor]');
+
+                for (var i = 0; i < anchors.length; i++) {
+
+                    var dom = anchors[i];
+
+                    var domY = getElementPosition(dom, container).y;
+                    if (domY < containerHeight &&  domY > -dom.clientHeight) {
+                        if (!dom.pv) {
+                            console.log('可见', dom.id)
+                            dom.pv = true;
+                        }
+                    } else {
+                        //console.log('不可见');
+                        dom.pv = false;
+                    }
+                };
+            }));
+        }
+
+        
+        function getElementPosition(dom, container) {
+            container = container == window ? document.body : container;
+            var x = 0, y = 0;
+            while (dom != container) {
+                x += (dom.offsetLeft - container.scrollLeft);
+                y += (dom.offsetTop - container.scrollTop);
+                dom = dom.offsetParent;
+            }
+            return { 
+                x: x, 
+                y: y 
+            };
+        }
+    </script>
+</body>
+
+</html>
