@@ -21,6 +21,7 @@
     }
 
 
+    /*
     #d1 {
         position: relative;
         width:60%;
@@ -36,6 +37,7 @@
         background-color: #ddd;
     }
 
+    */
 
     img {
         width: 100%;
@@ -49,45 +51,36 @@
 
 <body id=body>
 
-        <div id=container>
+    <div id=container>
 
-            <div id=d1 event-anchor >d1</div>
-            <div id=d2 event-anchor >d2</div>
-            
-            <!--
+        <!--
                 img1<img id=img1 event-anchor src="img.jpg">
                 img2<img id=img2 event-anchor src="http://a3.att.hudong.com/14/75/01300000164186121366756803686.jpg">
                 im3<img id=img3 event-anchor src="http://a4.att.hudong.com/20/62/01000000000000119086280352820.jpg">
                 d1<div id=d1 event-anchor >d1</div>
             -->
-        </div>
-            
+    </div>
+
     <script>
-        // 节流函数
-        var throttle = function () {
-            var time = 0;
-            return function (fn) {
-                return function () {
-                    if (new Date().getTime() - time > 200) {
-                        time = new Date().getTime();
-                        fn.apply(this, arguments)
-                    }
-                }
-            };
-        }();
+
+        for (var i = 0; i < 100; i++) {
+            var dom = document.createElement('div');
+            dom.setAttribute('id', 'd' + i);
+            dom.setAttribute('event-anchor', '');
+            dom.innerHTML = 'd' + i;
+            document.getElementById('container').appendChild(dom)
+        }
+
 
 
         var container = document.getElementById('container');
 
-        initScroll(container);
-
-        function initScroll(container) {
-
+        var scroll = function () {
             var timer;
-            
-            container.addEventListener('scroll', throttle(function () {
 
-                if(container == window) {
+            function fn() {
+
+                if (container == window) {
                     var scrollTop = document.body.scrollTop;
                     var containerHeight = window.innerHeight;
                     var doc = document;
@@ -104,7 +97,7 @@
                     var dom = anchors[i];
 
                     var domY = getElementPosition(dom, container).y;
-                    if (domY < containerHeight &&  domY > -dom.clientHeight) {
+                    if (domY < containerHeight && domY > -dom.clientHeight) {
                         if (!dom.pv) {
                             console.log('可见', dom.id)
                             dom.pv = true;
@@ -129,23 +122,50 @@
 
                     oldScrollTop = container.scrollTop;
                 }, 100)
-            }));
-        }
-
-        
-        function getElementPosition(dom, container) {
-            container = container == window ? document.body : container;
-            var x = 0, y = 0;
-            while (dom != container) {
-                x += (dom.offsetLeft - container.scrollLeft);
-                y += (dom.offsetTop - container.scrollTop);
-                dom = dom.offsetParent;
             }
-            return { 
-                x: x, 
-                y: y 
-            };
-        }
+
+            function getElementPosition(dom, container) {
+                container = container == window ? document.body : container;
+                var x = 0, y = 0;
+                while (dom != container) {
+                    x += (dom.offsetLeft - container.scrollLeft);
+                    y += (dom.offsetTop - container.scrollTop);
+                    dom = dom.offsetParent;
+                }
+                return {
+                    x: x,
+                    y: y
+                };
+            }
+            
+            // 节流函数
+            var throttle = function () {
+                var time = 0;
+                return function (fn) {
+                    return function () {
+                        if (new Date().getTime() - time > 200) {
+                            time = new Date().getTime();
+                            fn.apply(this, arguments)
+                        }
+                    }
+                };
+            }();
+            return {
+                init: function () {
+                    container = container || window;
+                    container.addEventListener('scroll', throttle(fn));
+                    fn();
+                }
+            }
+        }();
+
+        scroll.init(container);
+
+
+
+
+
+
     </script>
 </body>
 
