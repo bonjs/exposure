@@ -71,15 +71,25 @@
             document.getElementById('container').appendChild(dom)
         }
 
-
-
         var container = document.getElementById('container');
 
-        var scroll = function () {
+        var Scroll = function () {
+            var events = [];
             var timer;
+            var arr = [];
+            
+            var isScroll = false;
+            
+            function action() {
 
-            function fn() {
+                var me = this;
 
+                if(isScroll) {
+                    arr = [];
+                    this.fireEvent('start');
+                }
+                isScroll = true;
+                
                 if (container == window) {
                     var scrollTop = document.body.scrollTop;
                     var containerHeight = window.innerHeight;
@@ -90,7 +100,7 @@
                     var doc = container;
                 }
 
-                var anchors = doc.querySelectorAll('*[event-anchor]');
+                var anchors = doc.querySelectorAll(this.selector);
 
                 for (var i = 0; i < anchors.length; i++) {
 
@@ -99,15 +109,19 @@
                     var domY = getElementPosition(dom, container).y;
                     if (domY < containerHeight && domY > -dom.clientHeight) {
                         if (!dom.pv) {
-                            console.log('可见', dom.id)
+                            //console.log('可见', dom.id)
+                            if(!arr.some(function(it) { // 防止重复增加
+                                return it == dom;
+                            })) {
+                                arr.push(dom);
+                            }
                             dom.pv = true;
                         }
                     } else {
                         //console.log('不可见');
                         dom.pv = false;
                     }
-                };
-
+                }
 
                 var oldScrollTop = container.scrollTop;
 
@@ -116,12 +130,13 @@
                 timer = setInterval(function () {
 
                     if (container.scrollTop == oldScrollTop) {
-                        console.log('停止');
+                        me.fireEvent('stop', arr);
+                        isScroll = false;
                         clearInterval(timer)
                     }
 
                     oldScrollTop = container.scrollTop;
-                }, 100)
+                }, 100);
             }
 
             function getElementPosition(dom, container) {
@@ -151,15 +166,65 @@
                 };
             }();
             return {
-                init: function () {
-                    container = container || window;
-                    container.addEventListener('scroll', throttle(fn));
-                    fn();
+                init: function (opt) {
+                    var me = this;
+
+                    opt = opt || {};
+
+                    opt.container = opt.container || window;
+                    this.selector = opt.selector || '';
+
+                    // 初始化时设置的监听事件
+                    if(opt.listeners) {
+                        for(var k in opt.listeners) {
+                           this.on(k, opt.listeners[k]);
+                        }
+                    }
+
+                    action.apply(this);
+                    opt.container.addEventListener('scroll', throttle(function() {
+                        action.apply(me);
+                    }));
+                },
+                // 动态添加的监听事件
+                on: function(eventName, eventFn) {
+                    if(/^[\w-]+$/.test(eventName) && typeof eventFn == 'function') {
+                        events.push({
+                            name: eventName,
+                            fn: eventFn
+                        });
+                    }
+                },
+                fireEvent: function(eventName) {
+                    var me = this;
+                    var _arguments = arguments;
+                    if(eventName == undefined) {
+                        return;
+                    }
+                    var eventFns = events.filter(function(it) {
+                        return it.name == eventName;
+                    });
+
+                    eventFns.forEach(function(it) {
+                        it.fn && it.fn.apply(me, Array.prototype.splice.call(_arguments, 1));
+                    });
                 }
             }
         }();
 
-        scroll.init(container);
+        Scroll.init({
+            container: container,
+            selector: 'div[event-anchor]',
+            listeners: {
+                start: function() {
+                    console.log('start')
+                },
+                stop: function(arr) {
+                    console.log('stop', arr)
+                }
+            }
+        });
+
 
 
 
