@@ -84,18 +84,20 @@
 
                 var me = this;
 
-                if(isScroll) {
+                if(!isScroll) {
                     arr = [];
                     this.fireEvent('start');
                 }
                 isScroll = true;
+
+                var container = this.container;
                 
                 if (container == window) {
                     var scrollTop = document.body.scrollTop;
                     var containerHeight = window.innerHeight;
                     var doc = document;
                 } else {
-                    var scrollTop = container.scrollTop;
+                    var scrollTop = this.selector.scrollTop;
                     var containerHeight = container.clientHeight;
                     var doc = container;
                 }
@@ -123,7 +125,7 @@
                     }
                 }
 
-                var oldScrollTop = container.scrollTop;
+                var oldScrollTop = scrollTop;
 
                 clearInterval(timer)
 
@@ -171,7 +173,7 @@
 
                     opt = opt || {};
 
-                    opt.container = opt.container || window;
+                    this.container = opt.container || window;
                     this.selector = opt.selector || '';
 
                     // 初始化时设置的监听事件
@@ -182,7 +184,7 @@
                     }
 
                     action.apply(this);
-                    opt.container.addEventListener('scroll', throttle(function() {
+                    this.container.addEventListener('scroll', throttle(function() {
                         action.apply(me);
                     }));
                 },
